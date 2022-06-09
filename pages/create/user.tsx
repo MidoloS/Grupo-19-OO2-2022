@@ -21,16 +21,20 @@ const Create: NextPage = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = formToJson(e.target);
-    await fetch("https://oo2-tp.herokuapp.com/usuario", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        Accept: "application/json",
-        Authorization: token,
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      await fetch("https://oo2-tp.herokuapp.com/usuario", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+          Accept: "application/json",
+          Authorization: token,
+        },
+        body: JSON.stringify(data),
+      });
+    } catch (error) {
+      console.log(error);
+    }
 
     console.log(data);
   };

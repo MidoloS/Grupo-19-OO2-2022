@@ -12,7 +12,7 @@ import {
 import { useRouter } from "next/router";
 import { NextPage } from "next/types";
 import { FormEvent } from "react";
-import { formToJson } from "../helpers/helpers";
+import { formToJson, parseJwt } from "../helpers/helpers";
 
 const Create: NextPage = () => {
   const { push } = useRouter();
@@ -20,7 +20,7 @@ const Create: NextPage = () => {
     e.preventDefault();
     const data = formToJson(e.target);
 
-    console.log(data);
+    console.log({ data });
 
     const req = await fetch("https://oo2-tp.herokuapp.com/authenticate", {
       method: "POST",
@@ -31,9 +31,12 @@ const Create: NextPage = () => {
     });
 
     const { jwtToken } = await req.json();
+    console.log({ jwtToken });
+    const { sub } = parseJwt(jwtToken);
 
     if (jwtToken) {
       localStorage.setItem("token", `Bearer ${jwtToken}`);
+      localStorage.setItem("role", sub);
       push("/users");
     }
   };

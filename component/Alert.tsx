@@ -12,7 +12,7 @@ import {
 import React, { FC, ReactNode } from "react";
 
 type Props = {
-  type?: "DELETE";
+  type?: "DELETE" | "EDIT";
   children: ReactNode;
   title?: string;
   onClick?: () => void;
@@ -41,6 +41,21 @@ const Alert: FC<Props> = ({
         ml={3}
       >
         Borrar
+      </Button>
+    ),
+    EDIT: (
+      <Button
+        leftIcon={<DeleteIcon />}
+        colorScheme="red.500"
+        variant="solid"
+        bg={"red.500"}
+        onClick={() => {
+          onClick();
+          onClose();
+        }}
+        ml={3}
+      >
+        Editar
       </Button>
     ),
   };

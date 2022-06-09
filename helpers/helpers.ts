@@ -7,6 +7,19 @@ export const formToJson = (form: { target: HTMLFormElement | undefined }) => {
   return Object.fromEntries(formData.entries());
 };
 
+export const parseJwt = (token: string) => {
+  console.log({ token });
+  const base64Url = token.split(".")[1];
+  const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+  const jsonPayload = decodeURIComponent(
+    atob(base64)
+      .split("")
+      .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+      .join("")
+  );
+  return JSON.parse(jsonPayload);
+};
+
 export const useRequest = async (
   path: string,
   options: RequestInit = {

@@ -23,9 +23,10 @@ import { DeleteIcon, EditIcon, DownloadIcon } from "@chakra-ui/icons";
 import { NextPage } from "next/types";
 import { FormEvent, useEffect, useState } from "react";
 import { formToJson } from "../helpers/helpers";
-import DeleteUser from "../component/Alert";
-import xlsx from "json-as-xlsx";
+import Modal from "../component/Alert";
+import { jsPDF } from "jspdf";
 import { useRouter } from "next/router";
+import EditModal from "../component/EditModal";
 
 const Create: NextPage = () => {
   const [users, setUsers] = useState([]);
@@ -47,38 +48,46 @@ const Create: NextPage = () => {
       .then((data) => {
         console.log(data);
         setUsers(data);
+      })
+      .catch((error) => {
+        console.log(error);
       });
   }, []);
 
   const handleDelete = async (id: string) => {
     console.log({ token });
-    fetch(`https://oo2-tp.herokuapp.com/usuario/${id}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: String(token),
-        "Access-Control-Allow-Origin": "*",
-        Accept: "application/json",
-      },
-    });
+    try {
+      fetch(`https://oo2-tp.herokuapp.com/usuario/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: String(token),
+          "Access-Control-Allow-Origin": "*",
+          Accept: "application/json",
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const handleDownload = () => {
-    const data = {
-      sheet: "Alumnos",
-      columns: [
-        { label: "Nombre", value: "nombre" },
-        { label: "Apellido", value: "apellido" },
-        { label: "Email", value: "correo" },
-        { label: "Documento", value: "documento" },
-      ],
-      content: users,
-    };
-    xlsx([data], {
-      fileName: "Alumnos",
-      extraLength: 3,
-      writeOptions: {},
+    const doc = new jsPDF();
+
+    const pageHeight = doc.internal.pageSize.height;
+
+    users.forEach((user, index) => {
+      const { documento, nombre, apellido, correo } = user;
+      const name = `${nombre} ${apellido} | ${documento}`;
+      if (pageHeight < index * 30 + 10) {
+        doc.addPage();
+        index = 0;
+      }
+      doc.text(name, 10, index * 30 + 10);
+      doc.text(correo, 10, index * 30 + 20);
     });
+    console.log({ doc });
+    doc.save("test.pdf");
   };
 
   const logout = () => {
@@ -89,14 +98,13 @@ const Create: NextPage = () => {
   return (
     <>
       <Button
-        leftIcon={<DeleteIcon />}
         colorScheme="red.500"
         variant="solid"
         bg={"red.500"}
         onClick={logout}
         ml={3}
       >
-        Borrar
+        Cerrar sesion
       </Button>
       <Box
         p={3}
@@ -136,7 +144,7 @@ const Create: NextPage = () => {
                   <Td isNumeric>{documento}</Td>
                   <Td>
                     <Stack direction="row">
-                      <DeleteUser
+                      <Modal
                         onClick={() => handleDelete(id)}
                         title="Estas seguro que quieres borrar este usuario?"
                       >
@@ -148,16 +156,8 @@ const Create: NextPage = () => {
                         >
                           Borrar
                         </Button>
-                      </DeleteUser>
-
-                      <Button
-                        leftIcon={<EditIcon />}
-                        colorScheme="gray.500"
-                        variant="solid"
-                        bg={"gray.500"}
-                      >
-                        Editar
-                      </Button>
+                      </Modal>
+                      <EditModal id={id} />
                     </Stack>
                   </Td>
                 </Tr>
